@@ -4,10 +4,13 @@ import shutil
 import os
 import sys
 
-scripts_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..', 'scripts'))
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+scripts_path = os.path.join(PROJECT_ROOT, 'scripts')
 sys.path.append(scripts_path)
 
-ocr_scripts_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..', 'ocr_scripts'))
+ocr_scripts_path = os.path.join(PROJECT_ROOT, 'ocr_scripts')
 sys.path.append(ocr_scripts_path)
 
 from pan_ocr import ExtractDetails
@@ -16,14 +19,22 @@ from face_matching_export import extract_and_store_embedding, compare_faces
 from qr_uid_matching_export import decode_qr_opencv, check_uid_last_4_digits
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type"]}})
 
-ADHAAR_IMAGE = "scripts/aadhar_image"
-EXTRACTED_FACE_IMAGE = "scripts/extracted_face_image"
-COMPARISON_IMAGE = "scripts/comparison_image"
-PANCARD_IMAGE = "scripts/pancard_image"
-SIGNATURE_IMAGE = "scripts/signature_image"
-PASSPORT_SIZE_IMAGE = "scripts/passport_size_image"
+# Set max file size to 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+# Use absolute paths from project root
+ADHAAR_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'aadhar_image')
+EXTRACTED_FACE_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'extracted_face_image')
+COMPARISON_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'comparison_image')
+PANCARD_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'pancard_image')
+SIGNATURE_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'signature_image')
+PASSPORT_SIZE_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'passport_size_image')
+
+# Ensure directories exist
+for directory in [ADHAAR_IMAGE, EXTRACTED_FACE_IMAGE, COMPARISON_IMAGE, PANCARD_IMAGE, SIGNATURE_IMAGE, PASSPORT_SIZE_IMAGE]:
+    os.makedirs(directory, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -31,19 +42,21 @@ def index():
 
 @app.route('/aadhar-upload', methods=['POST'])
 def aadhar_upload():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['file']
+        file = request.files['file']
 
-    if file.filename != '':  # Check if filename is not empty
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
         file_path = os.path.join(ADHAAR_IMAGE, file.filename)
         file.save(file_path)
 
         qr_data = decode_qr_opencv(file_path)
         check_face_extraction = extract_adhaar_face(file_path, EXTRACTED_FACE_IMAGE)
-        check_uid = check_uid_last_4_digits(qr_data, 'XXXXXXXX7743')  # Replace with your actual UID
-
+        check_uid = check_uid_last_4_digits(qr_data, 'XXXXXXXX7743') if qr_data else False
 
         if qr_data:
             return jsonify({
@@ -51,21 +64,30 @@ def aadhar_upload():
                 'qr_data': qr_data,
                 'face_extraction': check_face_extraction,
                 'uid_match': check_uid
-            })
+            }), 200
         else:
             return jsonify({
-                'message': 'Aadhar uploaded and stored. No QR code detected.'
-            })
-    else:
-        return jsonify({'error': 'File not stored'})
+                'message': 'Aadhar uploaded and stored. No QR code detected.',
+                'face_extraction': check_face_extraction
+            }), 200
+    except Exception as e:
+        print(f"Error in aadhar_upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
     
 
 @app.route('/pan-upload', methods=['POST'])
 def pan_upload():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
-    file = request.files['file']
-    if file.filename != '':  # Check if filename is not empty
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
         file_path = os.path.join(PANCARD_IMAGE, file.filename)
         file.save(file_path)
         data = ExtractDetails(file_path)
@@ -74,9 +96,12 @@ def pan_upload():
             'message': 'Pan Card uploaded and stored successfully', 
             'pan_number': data[0], 
             'dob': data[1]
-        })
-    else:
-        return jsonify({'error': 'Invalid file'})
+        }), 200
+    except Exception as e:
+        print(f"Error in pan_upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 
 @app.route('/signature-upload', methods=['POST'])
@@ -95,24 +120,31 @@ def signature_upload():
 
 @app.route('/livephoto-upload', methods=['POST'])
 def livephoto_upload():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
-    file = request.files['file']
-    # Do something with the uploaded signature file
-    #return jsonify({'message': 'Signature uploaded successfully'})
-    if file.filename != '':  # Check if filename is not empty
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
         file_path = os.path.join(COMPARISON_IMAGE, file.filename)
         file.save(file_path)
 
         extract_and_store_embedding(file_path)
-        check_face_matching = compare_faces(EXTRACTED_FACE_IMAGE + "/extracted_face.jpg", file_path)
+        extracted_face_path = os.path.join(EXTRACTED_FACE_IMAGE, "extracted_face.jpg")
+        check_face_matching = compare_faces(extracted_face_path, file_path)
 
         return jsonify({
             'message': 'Live photo uploaded and stored successfully',
             'face_matching': check_face_matching
-            })
-    else:
-        return jsonify({'error': 'Invalid file'})
+        }), 200
+    except Exception as e:
+        print(f"Error in livephoto_upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
     
 
 @app.route('/passport-photo-upload', methods=['POST'])
@@ -138,4 +170,4 @@ def passport_photo_upload():
         return jsonify({'error': 'Invalid file'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5002)
