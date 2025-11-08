@@ -21,7 +21,7 @@ if __name__ == '__main__':
     img_candidates = [
         os.environ.get('PAN_IMAGE') or '',
         DEFAULT_IMAGE,
-        os.path.join(os.path.dirname(DEFAULT_IMAGE), 'pancard_try.jpeg'),
+        os.path.join(os.path.dirname(DEFAULT_IMAGE), 'PAN.jpeg'),
     ]
     img = next((p for p in img_candidates if p and os.path.exists(p)), '')
     if not img:

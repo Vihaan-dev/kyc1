@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "react";
 import UploadAadhaar from "./UploadAadhaar";
 import UploadPan from "./UploadPan";
-import UploadPhoto from "./UploadPhoto";
-import UploadSignature from "./UploadSignature";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -312,10 +310,6 @@ export default function PersonalDetailsForm({
         <div className="flex justify-between">
           <UploadAadhaar />
           <UploadPan />
-        </div>
-        <div className="flex justify-between">
-          <UploadPhoto />
-          <UploadSignature />
         </div>
         <div>
           <Button

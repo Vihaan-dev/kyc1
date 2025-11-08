@@ -13,6 +13,7 @@ export const signupSchema = z.object({
       message: "Password must contain uppercase, lowercase, and numbers" 
     }),
   dob: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, { message: "Date must be in DD-MM-YYYY format" }),
+  recaptchaToken: z.string().optional(),
 });
 
 export class Signup {
@@ -88,6 +89,7 @@ export const signInSchema = z.object({
     .string()
     .min(8)
     .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,}$/),
+  recaptchaToken: z.string().optional(),
 });
 
 export class SignIn {

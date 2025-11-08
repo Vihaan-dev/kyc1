@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -22,7 +24,13 @@ const formSchema = z.object({
     .length(13, { message: "Phone number must be 13 characters." }),
 });
 
+// Google reCAPTCHA test key for localhost - always passes
+// Replace with your production key: 6Ld1hQYsAAAAALILNYdNp8_FjSDYCIqB-w3L8Aop
+const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+
 export default function SignUpForm() {
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,24 +42,42 @@ export default function SignUpForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Validate reCAPTCHA
+      if (!recaptchaToken) {
+        alert("Please complete the reCAPTCHA verification");
+        return;
+      }
+
       // const response = await fetch("/kycDetails", {
       //     method: "POST",
       //     headers: {
       //         "Content-Type": "application/json",
       //     },
-      //     body: JSON.stringify(values),
+      //     body: JSON.stringify({
+      //       ...values,
+      //       recaptchaToken,
+      //     }),
       // });
 
       // if (!response.ok) {
       //     throw new Error("Failed to submit form");
       // }
       // Handle success response
-      console.log("Form submitted successfully");
+      console.log("Form submitted successfully with reCAPTCHA token");
       window.location.href = "/otp-verify";
       form.reset();
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     } catch (error) {
       console.error("Error submitting form:", error);
+      // Reset reCAPTCHA on error
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     }
+  };
+
+  const onRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
   };
 
   return (
@@ -96,8 +122,20 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
+        
+        {/* reCAPTCHA */}
+        <div className="flex justify-center">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={onRecaptchaChange}
+          />
+        </div>
+        
         <FormMessage />
-        <Button type="submit">Next</Button>
+        <Button type="submit" disabled={!recaptchaToken}>
+          Next
+        </Button>
       </form>
     </Form>
   );

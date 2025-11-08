@@ -12,6 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -20,7 +22,13 @@ const formSchema = z.object({
   }),
 });
 
+// Google reCAPTCHA test key for localhost - always passes
+// Replace with your production key: 6Ld1hQYsAAAAALILNYdNp8_FjSDYCIqB-w3L8Aop
+const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+
 export default function SignInForm({ onSuccess }: { onSuccess: () => void }) {
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,12 +39,21 @@ export default function SignInForm({ onSuccess }: { onSuccess: () => void }) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Validate reCAPTCHA
+      if (!recaptchaToken) {
+        alert("Please complete the reCAPTCHA verification");
+        return;
+      }
+
       const response = await fetch("http://localhost:5001/api/auth/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          recaptchaToken,
+        }),
       });
 
       if (!response.ok) {
@@ -53,10 +70,19 @@ export default function SignInForm({ onSuccess }: { onSuccess: () => void }) {
       // Handle success response
       console.log("Form submitted successfully");
       form.reset();
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       onSuccess(); // Call the onSuccess function here
     } catch (error) {
       console.error("Error submitting form:", error);
+      // Reset reCAPTCHA on error
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     }
+  };
+
+  const onRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
   };
 
   return (
@@ -100,7 +126,19 @@ export default function SignInForm({ onSuccess }: { onSuccess: () => void }) {
             </FormItem>
           )}
         />
-        <Button type="submit">Next</Button>
+        
+        {/* reCAPTCHA */}
+        <div className="flex justify-center">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={onRecaptchaChange}
+          />
+        </div>
+        
+        <Button type="submit" disabled={!recaptchaToken}>
+          Next
+        </Button>
         <Link href="/" className="text-xs self-center underline">
           New here? Sign Up
         </Link>

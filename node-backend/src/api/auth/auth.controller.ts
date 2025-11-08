@@ -8,10 +8,20 @@ import {
   handleVerifyEmail,
   handleVerifyPhone,
 } from './auth.service';
+import { verifyRecaptcha } from '../../shared/recaptcha';
 
 export const signuUp = async (req: Request, res: Response) => {
   try {
     const validatedData = signupSchema.parse(req.body);
+    
+    // Verify reCAPTCHA if token is provided
+    if (validatedData.recaptchaToken) {
+      const isRecaptchaValid = await verifyRecaptcha(validatedData.recaptchaToken);
+      if (!isRecaptchaValid) {
+        return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+      }
+    }
+    
     const signup = new Signup(validatedData);
     await handleSignUp(signup);
     res.status(201).json({ message: 'OTP sent successfully' });
@@ -67,6 +77,15 @@ export const sendOTP = async (req: Request, res: Response) => {
 export const signIn = async (req: Request, res: Response) => {
   try {
     const validatedData = signInSchema.parse(req.body);
+    
+    // Verify reCAPTCHA if token is provided
+    if (validatedData.recaptchaToken) {
+      const isRecaptchaValid = await verifyRecaptcha(validatedData.recaptchaToken);
+      if (!isRecaptchaValid) {
+        return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+      }
+    }
+    
     const signIn = new SignIn(validatedData);
     const user = await handleSignIn(signIn.email, signIn.password);
     res.status(200).json({ message: 'Signed in successfully', data: { user } });

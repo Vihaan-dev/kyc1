@@ -193,19 +193,26 @@ def extract_text_from_crop(crop_img, field_name: str) -> str:
         
         # Field-specific cleaning
         if field_name == "AADHAR_NUMBER":
-            # Extract 12 digits, allow spaces
-            digits = re.findall(r'\d', text)
+            # Extract 12-digit Aadhaar number
+            # Remove all non-digits
+            digits = re.sub(r'\D', '', text)
             if len(digits) >= 12:
-                # Format as XXXX XXXX XXXX
                 aadhaar = ''.join(digits[:12])
                 return f"{aadhaar[:4]} {aadhaar[4:8]} {aadhaar[8:12]}"
             return ''.join(digits)
         
         elif field_name == "DATE_OF_BIRTH":
             # Look for DD/MM/YYYY or DD-MM-YYYY
+            # First, clean up common OCR mistakes
+            text = re.sub(r'[O0]([O0]\d)', r'0\1', text)  # Replace O with 0
+            text = re.sub(r'([^/\-])([O0])', r'\g<1>0', text)  # Replace O with 0 in dates
+            
             dob_match = re.search(r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b', text)
             if dob_match:
-                return f"{dob_match.group(1).zfill(2)}/{dob_match.group(2).zfill(2)}/{dob_match.group(3)}"
+                day = dob_match.group(1).zfill(2)
+                month = dob_match.group(2).zfill(2)
+                year = dob_match.group(3)
+                return f"{day}/{month}/{year}"
             return text
         
         elif field_name == "GENDER":
@@ -218,12 +225,41 @@ def extract_text_from_crop(crop_img, field_name: str) -> str:
             return text.title()
         
         elif field_name == "NAME":
-            # Clean up name
-            return re.sub(r'\s+', ' ', text).strip()
+            # Clean up name - remove common prefixes and OCR noise
+            text = text.strip()
+            
+            # Remove leading noise and common prefixes
+            text = re.sub(r'^[^A-Z]*(?=[A-Z])', '', text)  # Remove junk before first capital letter
+            text = re.sub(r'^\s*(?:Name|NAME|Holder|HOLDER)[\s:]*', '', text, flags=re.IGNORECASE)
+            
+            # Clean up multiple spaces
+            text = re.sub(r'\s+', ' ', text).strip()
+            
+            # Remove lines that are clearly OCR artifacts (mostly numbers/symbols)
+            if text and sum(c.isalpha() for c in text) > len(text) * 0.5:  # At least 50% letters
+                return text
+            return text.title() if text else text
         
         elif field_name == "ADDRESS":
-            # Clean up address
-            return re.sub(r'\s+', ' ', text).strip()
+            # Clean up address - remove common OCR artifacts and prefixes
+            # Remove leading noise/artifacts (OCR junk before actual address)
+            # Common patterns: numbers at start, OCR garbage like "56uus7", "CIO:", etc.
+            text = text.strip()
+            
+            # Remove leading digits, special characters, and common OCR artifacts
+            # Pattern: starts with noise until we find actual address text
+            text = re.sub(r'^[0-9]+\s*', '', text)  # Remove leading digits
+            text = re.sub(r'^[^A-Z]*(?=[A-Z])', '', text)  # Remove junk before first capital letter
+            text = re.sub(r'^\s*(?:Address|ADDRESS|Addr)[\s:]*', '', text, flags=re.IGNORECASE)  # Remove "Address:" prefix
+            text = re.sub(r'^\s*(?:CIO|C/O|C\.O\.|Care\s+Of)[\s:]*', '', text, flags=re.IGNORECASE)  # Remove CIO/C/O prefix
+            
+            # Clean up multiple spaces and normalize
+            text = re.sub(r'\s+', ' ', text).strip()
+            
+            # Remove trailing noise (incomplete words, stray characters)
+            text = re.sub(r'\s+[A-Za-z]{1}(?:\s|$)', '', text).strip()  # Remove single letter words at end
+            
+            return text
         
         return text
         
