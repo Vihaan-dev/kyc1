@@ -61,4 +61,10 @@ Werkzeug==3.0.1
 wrapt==1.16.0
 zipp==3.18.0
 flask==3.0.2
-Flask-Cors==1.10.3
+Flask-Cors==4.0.0
+
+# OCR and detection for advanced PAN extraction
+easyocr==1.7.1
+ultralyticsplus==0.0.28
+ultralytics==8.0.43
+pytesseract==0.3.13

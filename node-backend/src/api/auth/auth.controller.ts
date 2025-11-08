@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Signup } from './auth.schema';
+import { Signup, signupSchema, verifyPhoneSchema, VerifyPhone, verifyEmailSchema, VerifyEmail, signInSchema, SignIn } from './auth.schema';
 import {
   handleForgotPassword,
   handleSendOTP,
@@ -11,7 +11,8 @@ import {
 
 export const signuUp = async (req: Request, res: Response) => {
   try {
-    const signup = new Signup(req.body);
+    const validatedData = signupSchema.parse(req.body);
+    const signup = new Signup(validatedData);
     await handleSignUp(signup);
     res.status(201).json({ message: 'OTP sent successfully' });
   } catch (error) {
@@ -21,8 +22,9 @@ export const signuUp = async (req: Request, res: Response) => {
 
 export const verifyPhone = async (req: Request, res: Response) => {
   try {
-    const { phone, otp } = req.body;
-    await handleVerifyPhone({ phone, otp });
+    const validatedData = verifyPhoneSchema.parse(req.body);
+    const verifyPhone = new VerifyPhone(validatedData);
+    await handleVerifyPhone(verifyPhone);
     res.status(200).json({ message: 'Phone number verified successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -31,8 +33,9 @@ export const verifyPhone = async (req: Request, res: Response) => {
 
 export const verifyEmail = async (req: Request, res: Response) => {
   try {
-    const { email, otp } = req.body;
-    await handleVerifyEmail({ email, otp });
+    const validatedData = verifyEmailSchema.parse(req.body);
+    const verifyEmail = new VerifyEmail(validatedData);
+    await handleVerifyEmail(verifyEmail);
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     console.error('ERROR', error);
@@ -63,8 +66,9 @@ export const sendOTP = async (req: Request, res: Response) => {
 
 export const signIn = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
-    const user = await handleSignIn(email, password);
+    const validatedData = signInSchema.parse(req.body);
+    const signIn = new SignIn(validatedData);
+    const user = await handleSignIn(signIn.email, signIn.password);
     res.status(200).json({ message: 'Signed in successfully', data: { user } });
   } catch (error) {
     res.status(400).json({ error: error.message });

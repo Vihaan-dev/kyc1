@@ -13,7 +13,8 @@ sys.path.append(scripts_path)
 ocr_scripts_path = os.path.join(PROJECT_ROOT, 'ocr_scripts')
 sys.path.append(ocr_scripts_path)
 
-from pan_ocr import ExtractDetails
+from pan_advanced_extraction import extract_pan_fields
+from aadhaar_advanced_extraction import extract_aadhaar_fields
 from face_extraction_export import extract_adhaar_face
 from face_matching_export import extract_and_store_embedding, compare_faces
 from qr_uid_matching_export import decode_qr_opencv, check_uid_last_4_digits
@@ -54,28 +55,34 @@ def aadhar_upload():
         file_path = os.path.join(ADHAAR_IMAGE, file.filename)
         file.save(file_path)
 
-        qr_data = decode_qr_opencv(file_path)
-        check_face_extraction = extract_adhaar_face(file_path, EXTRACTED_FACE_IMAGE)
-        check_uid = check_uid_last_4_digits(qr_data, 'XXXXXXXX7743') if qr_data else False
+        # Extract Aadhaar fields using YOLO + OCR
+        aadhaar_data = extract_aadhaar_fields(file_path)
+        
+        # Check if extraction was successful
+        extraction_success = bool(
+            aadhaar_data.get('name') or 
+            aadhaar_data.get('aadhaar_number')
+        )
+        
+        # Build clean response - only extracted data
+        response = {
+            'message': 'Aadhaar uploaded and processed successfully',
+            'success': extraction_success,
+            'aadhaar_number': aadhaar_data.get('aadhaar_number', ''),
+            'name': aadhaar_data.get('name', ''),
+            'dob': aadhaar_data.get('dob', ''),
+            'gender': aadhaar_data.get('gender', ''),
+            'address': aadhaar_data.get('address', ''),
+            'photo': aadhaar_data.get('photo', ''),
+        }
 
-        if qr_data:
-            return jsonify({
-                'message': 'Aadhar uploaded and stored successfully and data extracted successfully',
-                'qr_data': qr_data,
-                'face_extraction': check_face_extraction,
-                'uid_match': check_uid
-            }), 200
-        else:
-            return jsonify({
-                'message': 'Aadhar uploaded and stored. No QR code detected.',
-                'face_extraction': check_face_extraction
-            }), 200
+        return jsonify(response), 200
+        
     except Exception as e:
         print(f"Error in aadhar_upload: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
-    
 
 @app.route('/pan-upload', methods=['POST'])
 def pan_upload():
@@ -90,12 +97,21 @@ def pan_upload():
         
         file_path = os.path.join(PANCARD_IMAGE, file.filename)
         file.save(file_path)
-        data = ExtractDetails(file_path)
+        
+        # Extract PAN fields using advanced YOLO + OCR
+        pan_data = extract_pan_fields(file_path)
+        
+        # Check if extraction was successful
+        extraction_success = bool(pan_data.get('pan_number'))
 
         return jsonify({
-            'message': 'Pan Card uploaded and stored successfully', 
-            'pan_number': data[0], 
-            'dob': data[1]
+            'message': 'PAN Card uploaded and processed successfully',
+            'success': extraction_success,
+            'pan_number': pan_data.get('pan_number', ''),
+            'name': pan_data.get('name', ''),
+            'father_name': pan_data.get('father_name', ''),
+            'dob': pan_data.get('dob', ''),
+            'photo': pan_data.get('photo', ''),
         }), 200
     except Exception as e:
         print(f"Error in pan_upload: {str(e)}")

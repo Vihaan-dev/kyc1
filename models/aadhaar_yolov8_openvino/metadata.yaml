@@ -1,0 +1,25 @@
+description: Ultralytics model model trained on data.yaml
+author: Ultralytics
+date: '2025-04-17T13:23:12.838459'
+version: 8.3.109
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: AADHAR_NUMBER
+  1: DATE_OF_BIRTH
+  2: GENDER
+  3: NAME
+  4: ADDRESS
+args:
+  batch: 1
+  fraction: 1.0
+  half: false
+  int8: true
+  dynamic: false
+  nms: false

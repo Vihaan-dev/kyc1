@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Player } from "@lottiefiles/react-lottie-player";
+import dynamic from "next/dynamic";
 import "@/components/translations/Translations";
 import { useTranslation } from "react-i18next";
+
+// Dynamically import Player to prevent SSR issues with document
+const Player = dynamic(
+  () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+  { ssr: false }
+);
 
 export default function VerifyAndComplete() {
   const { t } = useTranslation();

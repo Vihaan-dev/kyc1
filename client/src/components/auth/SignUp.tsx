@@ -16,11 +16,13 @@ import Link from "next/link";
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+    message: "Password must contain uppercase, lowercase, and numbers.",
+  }).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: "Password must contain uppercase, lowercase, and numbers.",
   }),
   phone: z
     .string()
-    .length(13, { message: "Phone number must be 13 characters." }),
+    .length(13, { message: "Phone number must be +XXXXXXXXXXX (13 chars)" }),
   dob: z
     .string()
     .regex(/^\d{2}-\d{2}-\d{4}$/, {
@@ -95,7 +97,7 @@ export default function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Enter your phone number" {...field} />
+                <Input placeholder="Phone: +919876543210" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

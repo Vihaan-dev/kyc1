@@ -5,3 +5,7 @@ __pycache__/
 /.idea
 /.vscode
 *build
+venv/
+*.jpg
+*.png
+*.jpeg

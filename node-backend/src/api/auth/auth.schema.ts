@@ -4,14 +4,15 @@ export const signupSchema = z.object({
   email: z.string().email(),
   phone: z
     .string()
-    .min(13)
-    .max(13)
-    .regex(/^\+?\d{12}$/),
+    .length(13, { message: "Phone number must be 13 characters" })
+    .regex(/^\+\d{12}$/, { message: "Phone must be in format +XXXXXXXXXXX" }),
   password: z
     .string()
-    .min(8)
-    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,}$/),
-  dob: z.string().regex(/^\d{2}-\d{2}-\d{4}$/),
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, { 
+      message: "Password must contain uppercase, lowercase, and numbers" 
+    }),
+  dob: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, { message: "Date must be in DD-MM-YYYY format" }),
 });
 
 export class Signup {

@@ -55,61 +55,63 @@ export default function AadhaarVerification({
 
   const data = JSON.parse(localStorage.getItem("aadhar-data") || "{}");
 
+  // Simple display - just show what was extracted
+  const displayData = {
+    aadhaar_number: data.aadhaar_number || data.partial_data?.aadhaar_number || 'Not extracted',
+    name: data.name || data.partial_data?.name || 'Not extracted',
+    dob: data.dob || data.partial_data?.dob || 'Not extracted',
+    gender: data.gender || data.partial_data?.gender || 'Not extracted',
+    address: data.address || data.partial_data?.address || 'Not extracted',
+    manualReview: data.manual_review || false
+  };
+
+  const hasData = displayData.name !== 'Not extracted' || displayData.aadhaar_number !== 'Not extracted';
+
   return (
     <AadhaarContainer>
       <h2 className="text-lg font-semibold mb-4">
         {t("Here are the details we fetched from your Aadhaar card:")}
       </h2>
+      
+      {displayData.manualReview && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p className="text-yellow-800 text-sm">
+            ⚠️ Some data may require manual verification. Please review carefully.
+          </p>
+        </div>
+      )}
+      
       <AadhaarDetails>
         <Field>
-          <Label>UID:</Label>
-          <Value>{data.uid}</Value>
+          <Label>Aadhaar Number:</Label>
+          <Value>{displayData.aadhaar_number}</Value>
         </Field>
         <Field>
           <Label>Name:</Label>
-          <Value>{data.name}</Value>
+          <Value>{displayData.name}</Value>
         </Field>
         <Field>
-          <Label>Care Of:</Label>
-          <Value>{data.careOf}</Value>
+          <Label>Date of Birth:</Label>
+          <Value>{displayData.dob}</Value>
         </Field>
         <Field>
-          <Label>Building:</Label>
-          <Value>{data.building}</Value>
+          <Label>Gender:</Label>
+          <Value>{displayData.gender}</Value>
         </Field>
         <Field>
-          <Label>Street:</Label>
-          <Value>{data.street}</Value>
-        </Field>
-        <Field>
-          <Label>Landmark:</Label>
-          <Value>{data.landmark}</Value>
-        </Field>
-        <Field>
-          <Label>Locality:</Label>
-          <Value>{data.locality}</Value>
-        </Field>
-        <Field>
-          <Label>VTC Name:</Label>
-          <Value>{data.vtcName}</Value>
-        </Field>
-        <Field>
-          <Label>PO Name:</Label>
-          <Value>{data.poName}</Value>
-        </Field>
-        <Field>
-          <Label>District Name:</Label>
-          <Value>{data.districtName}</Value>
-        </Field>
-        <Field>
-          <Label>State Name:</Label>
-          <Value>{data.stateName}</Value>
-        </Field>
-        <Field>
-          <Label>Pincode:</Label>
-          <Value>{data.pincode}</Value>
+          <Label>Address:</Label>
+          <Value>{displayData.address}</Value>
         </Field>
       </AadhaarDetails>
+      
+      {!hasData && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+          <p className="text-red-800 text-sm">
+            ⚠️ No data could be extracted. Please proceed for manual verification.
+          </p>
+        </div>
+      )}
+      
       <Button className="my-10 bg-blue-600" onClick={onSubmit}>
         {t("Verify & Continue")}
       </Button>
