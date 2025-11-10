@@ -8,6 +8,7 @@ const WebcamFeed = ({ videoRef, frameType }) => {
     photo: { top: "15%", left: "25%", width: "50%", height: "70%" },
     pan: { top: "15%", left: "10%", width: "80%", height: "70%" },
     sign: { top: "30%", left: "20%", width: "60%", height: "40%" },
+    selfie: { top: "10%", left: "15%", width: "70%", height: "80%" },
   };
 
   useEffect(() => {

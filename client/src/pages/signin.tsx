@@ -16,9 +16,9 @@ export default function Home() {
         <div className="w-full max-w-3xl">
           <LandingPage />
           <div className="flex flex-col w-full items-center gap-5">
-            <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
+            {/* <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
               Developed by
-            </h3>
+            </h3> */}
             <AnimatedTooltipPreview />
           </div>
         </div>

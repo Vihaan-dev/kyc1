@@ -36,10 +36,10 @@ export default function Navbar() {
     <header>
       <nav className="flex justify-between items-end border-b border-black/20 sm:pb-5 pb-3">
         <div className="flex items-center">
-          <h3 className="flex items-end text-2xl font-bold mr-2">
+          {/* <h3 className="flex items-end text-2xl font-bold mr-2">
             <Image src={logo} alt="me" width={40} height={40} />
             OpenKYC
-          </h3>
+          </h3> */}
           {/* <ul className="hidden md:flex mb-[3px]">
             {links.map((link, index) => (
               <Link

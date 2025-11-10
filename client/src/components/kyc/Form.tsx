@@ -151,7 +151,7 @@ export default function PersonalDetailsForm({
           </span>
           <span>
             {t(
-              "After completing the form, say next to proceed to the next step.",
+              "After completing the form, click next to proceed to the next step.",
             )}
           </span>
         </h2>

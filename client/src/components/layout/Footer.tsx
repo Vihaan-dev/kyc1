@@ -24,16 +24,6 @@ export default function Footer() {
 
   return (
     <section className="flex md:flex-row flex-col justify-between mt-20">
-      <div className="mt-10">
-        <p className="flex items-end text-2xl font-bold">
-          <Image src={logo} alt="me" width={40} height={40} />
-          OpenKYC
-        </p>
-        <p className={`text-md font-medium max-w-[250px] my-2`}>
-          Verify your identity effortlessly and securely with our Video KYC App
-        </p>
-        <p>© 2024 OpenKYC. All rights reserved.</p>
-      </div>
       <div className="flex flex-wrap justify-between">
         {/* <div className="md:ml-5 mr-5 md:mr-0 mt-10">
           <p className="text-xl font-bold">Links</p>
@@ -50,7 +40,7 @@ export default function Footer() {
             ))}
           </ul>
         </div> */}
-        <div className="md:mx-5 mr-5 md:mr-0 mt-10">
+        {/* <div className="md:mx-5 mr-5 md:mr-0 mt-10">
           <p className="text-xl font-bold">About Us</p>
           <ul className="text-md">
             {aboutUs.map((link, index) => (
@@ -79,7 +69,7 @@ export default function Footer() {
               </li>
             ))}
           </ul>
-        </div>
+        </div> */}
       </div>
     </section>
   );
