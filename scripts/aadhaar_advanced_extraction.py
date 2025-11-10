@@ -39,6 +39,7 @@ except Exception:
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'aadhar_image', 'Aadhar both sides.png')
 OUT_DIR = os.path.join(PROJECT_ROOT, 'scripts', 'extracted_aadhaar_regions')
+FACE_OUT_DIR = os.path.join(PROJECT_ROOT, 'scripts', 'extracted_face_image')
 os.makedirs(OUT_DIR, exist_ok=True)
 
 MODEL_REPO = "thewalnutaisg/YOLOv8-aadhar-card-int8-openvino"
@@ -370,6 +371,8 @@ def extract_aadhaar_fields(image_path: str) -> Dict[str, str]:
     face_crop = detect_face_from_aadhaar(image_bgr)
     if face_crop is not None:
         photo_path = os.path.join(OUT_DIR, 'photo.jpg')
+        cv2.imwrite(photo_path, face_crop)
+        photo_path = os.path.join(FACE_OUT_DIR, 'aadhar_photo.jpg')
         cv2.imwrite(photo_path, face_crop)
         result['photo'] = photo_path
     

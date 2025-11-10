@@ -40,6 +40,7 @@ except Exception:
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_IMAGE = os.path.join(PROJECT_ROOT, 'scripts', 'pancard_image', 'PAN.jpeg')
 OUT_DIR = os.path.join(PROJECT_ROOT, 'scripts', 'extracted_pan_regions')
+FACE_OUT_DIR = os.path.join(PROJECT_ROOT, 'scripts', 'extracted_face_image')
 os.makedirs(OUT_DIR, exist_ok=True)
 
 CASCADE_PATH = os.path.join(PROJECT_ROOT, 'scripts', 'haarcascade_frontalface_default.xml')
@@ -332,6 +333,7 @@ def extract_pan_fields(image_path: str) -> Dict[str, Optional[str]]:
                 face = detect_face_roi(image)
                 if face is not None:
                     cv2.imwrite(os.path.join(OUT_DIR, 'photo.jpg'), face)
+                    cv2.imwrite(os.path.join(FACE_OUT_DIR, 'pan_photo.jpg'), face)
                     print("  ✓ Saved photo (Haar cascade fallback)")
             
             return result
@@ -359,7 +361,7 @@ def extract_pan_fields(image_path: str) -> Dict[str, Optional[str]]:
         face = detect_face_roi(image)
         if face is not None:
             cv2.imwrite(os.path.join(OUT_DIR, 'photo.jpg'), face)
-        
+            cv2.imwrite(os.path.join(FACE_OUT_DIR, 'pan_photo.jpg'), face)
         return result
 
     # 3) Final fallback: pytesseract
@@ -384,7 +386,7 @@ def extract_pan_fields(image_path: str) -> Dict[str, Optional[str]]:
         face = detect_face_roi(image)
         if face is not None:
             cv2.imwrite(os.path.join(OUT_DIR, 'photo.jpg'), face)
-        
+            cv2.imwrite(os.path.join(FACE_OUT_DIR, 'pan_photo.jpg'), face)
         return result
 
     # No OCR available

@@ -54,7 +54,7 @@ const CaptureFrame = ({ onNextStep }) => {
       canvas.width = rectWidth;
       canvas.height = rectHeight;
       context.drawImage(video, rectX, rectY, rectWidth, rectHeight, 0, 0, rectWidth, rectHeight);
-      const imageDataUrl = canvas.toDataURL("image/png");
+      const imageDataUrl = canvas.toDataURL("image/jpg");
       setCapturedImages({ photo: imageDataUrl });
       return imageDataUrl;
     }
@@ -68,7 +68,7 @@ const CaptureFrame = ({ onNextStep }) => {
       // Convert dataURL to blob
       const res = await fetch(dataUrl);
       const blob = await res.blob();
-      const file = new File([blob], "selfie.png", { type: "image/png" });
+      const file = new File([blob], "selfie.jpg", { type: "image/jpg" });
 
       const formData = new FormData();
       formData.append("file", file);

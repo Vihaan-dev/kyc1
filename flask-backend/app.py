@@ -16,7 +16,7 @@ sys.path.append(ocr_scripts_path)
 from pan_advanced_extraction import extract_pan_fields
 from aadhaar_advanced_extraction import extract_aadhaar_fields
 from face_extraction_export import extract_adhaar_face
-from face_matching_export import extract_and_store_embedding, compare_faces
+from face_matching_export import compare_faces
 from qr_uid_matching_export import decode_qr_opencv, check_uid_last_4_digits
 
 app = Flask(__name__)
@@ -148,13 +148,15 @@ def livephoto_upload():
         file_path = os.path.join(COMPARISON_IMAGE, file.filename)
         file.save(file_path)
 
-        extract_and_store_embedding(file_path)
-        extracted_face_path = os.path.join(EXTRACTED_FACE_IMAGE, "extracted_face.jpg")
-        check_face_matching = compare_faces(extracted_face_path, file_path)
+        aadhar_extracted_face_path = os.path.join(EXTRACTED_FACE_IMAGE, "aadhar_photo.jpg")
+        pan_extracted_face_path = os.path.join(EXTRACTED_FACE_IMAGE, 'pan_photo.jpg')
+        aadhar_check_face_result = compare_faces(aadhar_extracted_face_path, file_path)
+        pan_check_face_result = compare_faces(pan_extracted_face_path, file_path)
 
         return jsonify({
             'message': 'Live photo uploaded and stored successfully',
-            'face_matching': check_face_matching
+            'AADHAR_face_matching': aadhar_check_face_result,
+            'PAN_face_matching': pan_check_face_result
         }), 200
     except Exception as e:
         print(f"Error in livephoto_upload: {str(e)}")
