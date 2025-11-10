@@ -68,3 +68,5 @@ easyocr==1.7.1
 ultralyticsplus==0.0.28
 ultralytics==8.0.43
 pytesseract==0.3.13
+openvino==2025.3.0
+openvino-telemetry==2025.2.0
